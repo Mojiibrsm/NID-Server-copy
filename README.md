@@ -23,3 +23,17 @@ A dynamic, modern, and client-side web application to generate a printable Bangl
 - **Scripting:** Pure JavaScript (ES6+) & jQuery
 - **Fonts & Icons:** Google Fonts (Tiro Bangla & Poppins), FontAwesome v6
 - **API Used:** QRServer API for real-time QR code generation
+
+## 👨‍💻 Developer Information
+
+* **Developer Name:** `Mojib Rsm`
+* **Official Website:** [www.mojib.me](http://www.mojib.me)
+* **Facebook Profile:** [https://www.facebook.com/MoJiiB.RsM](https://www.facebook.com/MoJiiB.RsM)
+
+---
+
+### 📂 Repository File Structure
+```text
+├── index.html
+├── style.css
+└── script.js
