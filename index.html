@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>NID Server Copy System</title>
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.1.1/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" type="text/javascript"></script>
+    <style>
+        @page {
+            size: A4;
+            margin: auto;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: 'Poppins', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        /* Modernized Input Form Styling */
+        .form-container {
+            max-width: 650px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+        }
+        .form-container h2 {
+            text-align: center;
+            color: #4a148c;
+            margin-bottom: 25px;
+            font-family: 'Tiro Bangla', serif;
+            font-size: 28px;
+            font-weight: 600;
+            border-bottom: 2px solid #8e24aa;
+            padding-bottom: 10px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #b0bec5;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #8e24aa;
+            box-shadow: 0 0 8px rgba(142, 36, 170, 0.25);
+            outline: none;
+            background-color: #fff;
+        }
+        .form-group input[type="file"] {
+            padding: 6px;
+            background: #ede7f6;
+            cursor: pointer;
+        }
+        .submit-btn {
+            grid-column: span 2;
+            width: 100%;
+            background: linear-gradient(45deg, #4a148c, #8e24aa);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(142, 36, 170, 0.4);
+            margin-top: 10px;
+        }
+        .submit-btn:hover {
+            background: linear-gradient(45deg, #311b92, #6a1b9a);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(142, 36, 170, 0.6);
+        }
+
+        /* NID Preview Container */
+        #nid-preview-container {
+            display: none;
+            text-align: center;
+        }
+
+        .background {
+            position: relative;
+            width: 750px;
+            height: 1065px;
+            margin: auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+        .crane {
+            max-width: 100%;
+            height: 100%;
+        }
+        #present_addr, #permanent_addr {
+            text-align: left;
+        }
+        
+        /* Floating Action Buttons */
+        .action-buttons {
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .action-btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: 0.3s;
+        }
+        .print-btn { background-color: #2e7d32; color: white; }
+        .print-btn:hover { background-color: #1b5e20; }
+        .edit-btn { background-color: #f57f17; color: white; }
+        .edit-btn:hover { background-color: #e65100; }
+
+        @media print {
+            html, body {
+                width: 210mm !important;
+                height: 297mm !important;
+                background: #fff !important;
+                padding: 0;
+            }
+            .form-container, .action-buttons {
+                display: none !important;
+            }
+            #nid-preview-container {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container" id="input-form-section">
+        <h2>জাতীয় পরিচয়পত্র তথ্য ফর্ম</h2>
+        <form id="nidDataForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>জাতীয় পরিচয় পত্র নম্বর (NID No):</label>
+                    <input type="text" id="input_nid" placeholder="NID নম্বর লিখুন" required>
+                </div>
+                <div class="form-group">
+                    <label>পিন নম্বর (Pin No):</label>
+                    <input type="text" id="input_pin" placeholder="পিন নম্বর লিখুন">
+                </div>
+                <div class="form-group">
+                    <label>পূর্ববর্তী পরিচয়পত্র নম্বর:</label>
+                    <input type="text" id="input_voter" placeholder="পূর্ববর্তী আইডি নম্বর">
+                </div>
+                <div class="form-group">
+                    <label>মোবাইল নম্বর (Mobile No): *</label>
+                    <input type="text" id="input_mobile" placeholder="মোবাইল নম্বর লিখুন" required>
+                </div>
+                <div class="form-group">
+                    <label>ভোটার এলাকা:</label>
+                    <input type="text" id="input_area" placeholder="যেমন: পীরগাছা">
+                </div>
+                <div class="form-group">
+                    <label>জন্মস্থান:</label>
+                    <input type="text" id="input_birth_place" placeholder="যেমন: রংপুর">
+                </div>
+                <div class="form-group">
+                    <label>নাম (বাংলা):</label>
+                    <input type="text" id="input_name_bn" placeholder="বাংলায় নাম লিখুন" required>
+                </div>
+                <div class="form-group">
+                    <label>নাম (ইংরেজি):</label>
+                    <input type="text" id="input_name_en" placeholder="ইংরেজি বড় অক্ষরে নাম" required>
+                </div>
+                <div class="form-group">
+                    <label>জন্ম তারিখ:</label>
+                    <input type="date" id="input_dob" required>
+                </div>
+                <div class="form-group">
+                    <label>লিঙ্গ:</label>
+                    <select id="input_gender">
+                        <option value="" disabled selected>নির্বাচন করুন</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Third Gender">Third Gender</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>পিতার নাম:</label>
+                    <input type="text" id="input_father" placeholder="পিতার নাম লিখুন">
+                </div>
+                <div class="form-group">
+                    <label>মাতার নাম:</label>
+                    <input type="text" id="input_mother" placeholder="মাতার নাম লিখুন">
+                </div>
+                <div class="form-group">
+                    <label>ধর্ম:</label>
+                    <input type="text" id="input_religion" placeholder="যেমন: Islam">
+                </div>
+                <div class="form-group">
+                    <label>জন্মবার:</label>
+                    <input type="text" id="input_day" placeholder="যেমন: বৃহস্পতিবার">
+                </div>
+                <div class="form-group">
+                    <label>বয়স:</label>
+                    <input type="text" id="input_age" placeholder="যেমন: ২৮ বছর, ৪ মাস">
+                </div>
+                <div class="form-group">
+                    <label>সরাসরি ছবি আপলোড করুন (Upload Photo):</label>
+                    <input type="file" id="input_photo_file" accept="image/*" required>
+                </div>
+                <div class="form-group full-width">
+                    <label>বর্তমান ঠিকানা:</label>
+                    <textarea id="input_pres_addr" rows="2" placeholder="পূর্ণ বর্তমান ঠিকানা লিখুন..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>স্থায়ী ঠিকানা:</label>
+                    <textarea id="input_perm_addr" rows="2" placeholder="পূর্ণ স্থায়ী ঠিকানা লিখুন..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn"><i class="fa-solid fa-id-card"></i> Generate NID Card</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="nid-preview-container">
+        
+        <div class="action-buttons">
+            <button class="action-btn edit-btn" onclick="backToForm()"><i class="fa-solid fa-pen-to-square"></i> Edit Info</button>
+            <button class="action-btn print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print Report</button>
+        </div>
+
+        <div class="background">
+            <img class="crane" src="https://i.ibb.co.com/7d5js9qH/v1.jpg" height="1000px" width="750px">
+
+            <div style="position: absolute; left: 30%; top: 8%;width: auto;font-size: 16px; color: rgb(255 224 0);"><b>National Identity Registration Wing (NIDW)</b></div>
+            <div style="position: absolute; left: 37%; top: 11%;width: auto;font-size: 14px; color: rgb(255, 47, 161);"><b>Select Your Search Category</b></div>
+            <div style="position: absolute; left: 45%; top: 12.8%;width: auto;font-size: 12px; color: rgb(8, 121, 4);">Search By NID / Voter No.</div>
+            <div style="position: absolute; left: 45%; top: 14.3%;width: auto;font-size: 12px; color: rgb(7, 119, 184);">Search By Form No.</div>
+            <div style="position: absolute; left: 30%; top: 16.9%;width: auto;font-size: 12px; color: rgb(252, 0, 0);"><b>NID or Voter No*</b></div>
+            <div style="position: absolute; left: 45%; top: 16.9%; width: auto; font-size: 12px; color: rgb(143, 143, 143);">NID</div>
+            <div style="position: absolute;left: 62.9%;top: 17.1%;width: auto;font-size: 11px;color: rgb(255 255 255);">Submit</div>
+            <div style="position: absolute;left: 89%;top: 11.55%;width: auto;font-size: 11px;color: #fff;">Home</div>
+
+            <div style="position: absolute; left: 37%; top: 27%; width: auto; font-size: 16px; color: rgb(7, 7, 7);  font-family: 'Tiro Bangla';"><b>জাতীয় পরিচিতি তথ্য</b></div>
+            
+            <div style="position: absolute; left: 37%; top: 29.7%; width: auto; font-size: 13px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">জাতীয় পরিচয় পত্র নম্বর</div>
+            <div id="nid_no" style="position: absolute; left: 55%; top: 29.7%; width: auto; font-size: 14px; color: rgb(7, 7, 7);"></div>
+
+            <div style="position: absolute; left: 37%; top: 32.5%; width: auto; font-size: 13px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">পিন নম্বর</div>
+            <div id="nid_father" style="position: absolute; left: 55%; top: 32.5%; width: auto; font-size: 14px; color: rgb(7, 7, 7);"></div>
+
+            <div style="position: absolute; left: 37%; top: 35%; width: auto; font-size: 13px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">পূর্ববর্তী পরিচয়পত্র নম্বর</div>
+            <div id="voterNo" style="position: absolute; left: 55%; top: 35%; width: auto; font-size: 14px; color: rgb(7, 7, 7);"></div>
+
+            <div style="position: absolute; left: 37%; top: 37.5%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">ভোটার এলাকা</div>
+            <div id="spouse" style="position: absolute; left: 55%; top: 37.5%; width: auto; font-size: 14px; color: rgb(7, 7, 7);"></div>
+
+            <div style="position: absolute; left: 37%; top: 40.2%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">জন্মস্থান</div>
+            <div id="birth_place" style="position: absolute; left: 55%; top: 40.2%; width: auto; font-size: 14px; color: rgb(7, 7, 7);"></div>
+
+            <div style="position: absolute; left: 37%; top: 43%; width: auto; font-size: 16px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"><b>ব্যক্তিগত তথ্য</b></div>
+
+            <div style="position: absolute; left: 37%; top: 45.6%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">নাম (বাংলা)</div>
+            <div id="nameBangla" style="position: absolute;  left: 55%; top: 45.6%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"><b></b></div>
+
+            <div style="position: absolute; left: 37%; top: 48.5%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">নাম (ইংরেজি)</div>
+            <div id="nameEnglish" style="position: absolute; left: 55%; top:48.5%; width: auto; font-size: 14px; color: rgb(7, 7, 7);"></div>
+
+            <div style="position: absolute; left: 37%; top: 51%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">জন্ম তারিখ</div>
+            <div id="dob" style="position: absolute; left: 55%; top: 51%; width: auto; font-size: 14px; color: rgb(7, 7, 7);"></div>
+
+            <div style="position: absolute; left: 37%; top: 53.7%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">পিতার নাম</div>
+            <div id="fathers_name" style="position: absolute; left: 55%; top: 53.7%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div style="position: absolute; left: 37%; top: 56.2%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">মাতার নাম</div>
+            <div id="mothers_name" style="position: absolute; left: 55%; top: 56.2%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div style="position: absolute; left: 37%; top: 59%; width: auto; font-size: 16px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"><b>অন্যান্য তথ্য</b></div>
+
+            <div style="position: absolute; left: 37%; top: 62.2%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">লিঙ্গ</div>
+            <div id="gender" style="position: absolute; left: 55%; top: 62.2%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div style="position: absolute; left: 37%; top: 64.8%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">ধর্ম</div>
+            <div id="religion" style="position: absolute; left: 55%; top: 64.8%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div style="position: absolute; left: 37%; top: 67.5%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">জন্মবার</div>
+            <div id="birthDay" style="position: absolute; left: 55%; top: 67.5%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div style="position: absolute; left: 37%; top: 70%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';">বয়স</div>
+            <div id="age" style="position: absolute; left: 55%; top: 70%; width: auto; font-size: 14px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div id="mobile_no" style="display:none;"></div>
+
+            <div style="position: absolute; left: 37%; top: 73%; width: auto; font-size: 16px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"><b>বর্তমান ঠিকানা</b></div>
+            <div id="present_addr" style="position: absolute; left: 37%; top: 75.5%; width: 48%; font-size: 12px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div style="position: absolute; left: 37%; top: 82%; width: auto; font-size: 16px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"><b>স্থায়ী ঠিকানা</b></div>
+            <div id="permanent_addr" style="position: absolute; left: 37%; top: 84.5%; width: 48%; font-size: 12px; color: rgb(7, 7, 7); font-family: 'Tiro Bangla';"></div>
+
+            <div style="position: absolute;top: 92%;width: 100%;font-size: 12px;text-align: center;color: rgb(255, 0, 0); font-family: 'Tiro Bangla';">উপরে প্রদর্শিত তথ্যসমূহ জাতীয় পরিচয়পত্র সংশ্লিষ্ট, ভোটার তালিকার সাথে সরাসরি সম্পর্কযুক্ত নয়।</div>
+            <div style="position: absolute;top: 93.5%;width: 100%;text-align: center;font-size: 12px;color: rgb(3, 3, 3);">This is Software Generated Report From Bangladesh Election Commission, Signature &amp; Seal Aren't Required.</div>
+            
+            <div style="position: absolute; left: 16%; top: 25.7%; width: auto; font-size: 12px; color: rgb(3, 3, 3);">
+                <img id="photo" src="" alt="User Photo" height="140px" width="121px" style="border-radius: 10px; object-fit: cover;" />
+            </div>
+
+            <div id="name_en2" style="position: absolute;display: flex;font-weight: bold;left: 15.5%;top: 39.6%;height: 32px;width: 130px;font-size: 13px;color: rgb(7, 7, 7);margin: auto;align-items: center;" align="center">
+                <div style="flex: 1;" id="photo_below_name"></div>
+            </div>
+
+            <div style="position: absolute; font-weight: bold; left: 15.5%; top: 44.0%; height: 32px; width: 130px; font-size: 13px; color: rgb(7, 7, 7); margin: auto; align-items: center;" align="center">
+                <img id="qr" src="" height="100px" width="100px">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ফর্ম সাবমিট হ্যান্ডলার
+        document.getElementById('nidDataForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // ইনপুট ভ্যালুসমূহ নেওয়া
+            const nid = document.getElementById('input_nid').value;
+            const pin = document.getElementById('input_pin').value;
+            const voter = document.getElementById('input_voter').value;
+            const mobile = document.getElementById('input_mobile').value;
+            const area = document.getElementById('input_area').value;
+            const bPlace = document.getElementById('input_birth_place').value;
+            const nameBn = document.getElementById('input_name_bn').value;
+            const nameEn = document.getElementById('input_name_en').value;
+            const dob = document.getElementById('input_dob').value;
+            const father = document.getElementById('input_father').value;
+            const mother = document.getElementById('input_mother').value;
+            const gender = document.getElementById('input_gender').value;
+            const religion = document.getElementById('input_religion').value;
+            const day = document.getElementById('input_day').value;
+            const age = document.getElementById('input_age').value;
+            const presAddr = document.getElementById('input_pres_addr').value;
+            const permAddr = document.getElementById('input_perm_addr').value;
+            
+            // আউটপুট ডিজাইনে ডেটা সেট করা
+            document.getElementById('nid_no').innerText = nid;
+            document.getElementById('nid_father').innerText = pin;
+            document.getElementById('voterNo').innerText = voter;
+            document.getElementById('mobile_no').innerText = mobile; // ব্যাকএন্ডে ব্যবহারের জন্য
+            document.getElementById('spouse').innerText = area;
+            document.getElementById('birth_place').innerText = bPlace;
+            document.getElementById('nameBangla').innerHTML = `<b>${nameBn}</b>`;
+            document.getElementById('nameEnglish').innerText = nameEn;
+            document.getElementById('dob').innerText = dob;
+            document.getElementById('fathers_name').innerText = father;
+            document.getElementById('mothers_name').innerText = mother;
+            document.getElementById('gender').innerText = gender;
+            document.getElementById('religion').innerText = religion;
+            document.getElementById('birthDay').innerText = day;
+            document.getElementById('age').innerText = age;
+            document.getElementById('present_addr').innerText = presAddr;
+            document.getElementById('permanent_addr').innerText = permAddr;
+            document.getElementById('photo_below_name').innerText = nameEn;
+
+            // ফাইল আপলোড প্রোসেস (স্থানীয়ভাবে ফাইল রিড করা)
+            const photoFile = document.getElementById('input_photo_file').files[0];
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('photo').src = event.target.result;
+                }
+                reader.readAsDataURL(photoFile);
+            }
+
+            // ডায়নামিক কিউআর কোড জেনারেশন (মোবাইল নম্বর সহ ডেটা যুক্ত)
+            const qrData = encodeURIComponent(`${nameEn}⇋${nid}⇋${dob}⇋${mobile}`);
+            document.getElementById('qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
+
+            // ইন্টারফেস পরিবর্তন
+            document.getElementById('input-form-section').style.display = 'none';
+            document.getElementById('nid-preview-container').style.display = 'block';
+        });
+
+        // পুনরায় ফর্মে ফিরে যাওয়ার ফাংশন
+        function backToForm() {
+            document.getElementById('nid-preview-container').style.display = 'none';
+            document.getElementById('input-form-section').style.display = 'block';
+        }
+
+        // রাইট ক্লিক বন্ধ করার জন্য 
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+</body>
+</html>
